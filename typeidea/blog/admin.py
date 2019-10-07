@@ -4,15 +4,21 @@ from django.utils.html import format_html
 
 from .models import Category, Post, Tag
 from .adminforms import PostAdminForms
+from typeidea.custom_site import custom_site
+from typeidea.base_admin import BaseOwnerAdmin
 
-@admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+class PostInline(admin.TabularInline):  #可选择继承admin.StackenInline，以获取不同的展示样式
+
+    fields = ('title', 'desc')
+    extra = 1   # 控制额外多几个
+    model = Post
+
+
+@admin.register(Category, site=custom_site)
+class CategoryAdmin(BaseOwnerAdmin):
+    # inlines =  [PostInline]
     list_display = ('name', 'status', 'is_nav', 'created_time', 'post_count')    #列表页展示的字段
     fields = ('name', 'status', 'is_nav')
-
-    def save_model(self, request, obj, form, change):
-        obj.owner = request.user
-        return super(CategoryAdmin, self).save_model(request, obj, form, change)
 
     def post_count(self, obj):
         return obj.post_set.count()
@@ -35,25 +41,22 @@ class CategoryOwnerFilter(admin.SimpleListFilter):
             return queryset.filter(category_id=category_id)
         return queryset
 
-@admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
+@admin.register(Tag, site=custom_site)
+class TagAdmin(BaseOwnerAdmin):
     list_display = ('name', 'status', 'created_time')
     fields = ('name', 'status', )
 
-    def save_model(self, request, obj, form, change):
-        obj.owner = request.user
-        return super(TagAdmin, self).save_model(request, obj, form, change)
 
-
-@admin.register(Post)
-class PostAdmin(admin.ModelAdmin):
+@admin.register(Post, site=custom_site)
+# @admin.register(Post)
+class PostAdmin(BaseOwnerAdmin):
     form = PostAdminForms
-    list_display = (
+    list_display = [
         'title', 'category', 'status', 'created_time', 'operator', 'owner'
-    )
+    ]
     list_display_links =  []
 
-    list_filter = [CategoryOwnerFilter]
+    list_filter = [CategoryOwnerFilter, ]
     # filter_horizontal = ('category',)
 
     search_fields = ['title', 'category__name']
@@ -63,57 +66,53 @@ class PostAdmin(admin.ModelAdmin):
 
     exclude = ('owner',)
     #编辑页面
-    fields = (
-        # ('category', 'title'),    #小括号表示放在同一行
-        'category',
-        'title',
-        'desc',
-        'status',
-        'content',
-        'tag',
+    # fields = (
+    #     # ('category', 'title'),    #小括号表示放在同一行
+    #     'category',
+    #     'title',
+    #     'desc',
+    #     'status',
+    #     'content',
+    #     'tag',
+    # )
+
+    fieldsets = (
+        (
+            '基础配置', {
+                'description': '基础配置描述',
+                'fields': (
+                    ('title', 'category'),
+                    'status'
+                ),
+            }
+        ),
+        (
+            '内容', {
+                'fields': (
+                    'desc',
+                    'content',
+                ),
+            }
+        ),
+        (
+            '额外信息', {
+                'classes': ('collapse',),
+                'fields': ('tag',),
+            }
+        )
     )
 
-    # fieldsets = (
-    #     (
-    #         '基础配置', {
-    #             'description': '基础配置描述',
-    #             'fields': (
-    #                 ('title', 'category'),
-    #                 'status'
-    #             ),
-    #         }
-    #     ),
-    #     (
-    #         '内容', {
-    #             'fields': (
-    #                 'desc',
-    #                 'content',
-    #             ),
-    #         }
-    #     ),
-    #     (
-    #         '额外信息', {
-    #             'classes': ('collapse',),
-    #             'fields': ('tag',),
-    #         }
-    #     )
-    # )
+    # filter_horizontal =  ('tag',)
+    # filter_vertical = ('tag',)
 
     def operator(self, obj):
         return format_html(
             '<a href="{}">编辑</a>',
-            reverse('admin:blog_post_change', args=(obj.id,))   #这个是元组，后面有逗号
+            # reverse('admin:blog_post_change', args=(obj.id,))   #这个是元组，后面有逗号
+            reverse('cus_admin:blog_post_change', args=(obj.id,))   #这个是元组，后面有逗号
         )
     operator.short_description = '操作'
 
-    def save_model(self, request, obj, form, change):
-        obj.owner = request.user
-        return super(PostAdmin, self).save_model(request, obj, form, change)
-
-    def get_queryset(self, request):
-        qs = super(PostAdmin, self).get_queryset(request)
-        print(qs)
-        return qs.filter(owner=request.user)
 
     # class Media:
     #     css = {
