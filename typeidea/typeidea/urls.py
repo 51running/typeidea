@@ -23,8 +23,8 @@ from .custom_site import custom_site
 
 urlpatterns = [
     url(r'^$', post_list),
-    url(r'^category/(?P<category_id>\d+)$', post_list),
-    url(r'^tag/(?P<tag_id>\d+)$', post_list),
+    url(r'^category/(?P<category_id>\d+)/$', post_list),
+    url(r'^tag/(?P<tag_id>\d+)/$', post_list),
     url(r'^post/(?P<post_id>\d+).html$', post_detail),
     url(r'^links/$', links),
     url(r'^super_admin/', admin.site.urls),
