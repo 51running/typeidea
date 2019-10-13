@@ -4,6 +4,8 @@ from django.shortcuts import render
 from .models import Post, Tag, Category
 from config.models import SiderBar
 
+from django.views.generic import DetailView
+
 def post_list(request, category_id=None, tag_id=None):
     tag = None
     category = None
@@ -34,3 +36,18 @@ def post_detail(request, post_id):
     }
     context.update(Category.get_navs())
     return render(request, 'blog/detail.html', context=context)
+
+
+class PostDetail(DetailView):
+    model = Post
+    template_name = 'blog/detail'
+
+
+
+
+
+
+
+
+
+
