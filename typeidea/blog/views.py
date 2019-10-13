@@ -11,7 +11,7 @@ def post_list(request, category_id=None, tag_id=None):
     if tag_id:
         post_list, tag = Post.get_by_tag(tag_id)
     elif category_id:
-        post_list, category_id = Post.get_by_category(category_id)
+        post_list, category = Post.get_by_category(category_id)
     else:
         post_list = Post.latest_post()
     context = {

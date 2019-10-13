@@ -76,6 +76,10 @@ class Post(models.Model):
     tag = models.ForeignKey(Tag, verbose_name='标签')
     owner = models.ForeignKey(User, verbose_name='作者')
     created_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
+    pv = models.PositiveIntegerField(default=1)
+    uv = models.PositiveIntegerField(default=1)
+
+
 
     class Meta:
         verbose_name = verbose_name_plural = '文章'
@@ -111,6 +115,9 @@ class Post(models.Model):
         queryset = cls.objects.filter(status=cls.STATUS_NOPMAL)
         return queryset
 
+    @classmethod
+    def hos_posts(cls):
+        return cls.objects.filter(status=cls.STATUS_NOPMAL).order_by('-pv')
 
 
 
